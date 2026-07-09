@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Customers — ShopSphere Admin</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <div class="admin-main">
+    <div class="admin-topbar" id="adminTopbar"></div>
+    <div class="admin-content">
+      <div class="admin-toolbar">
+        <input type="text" id="searchInput" class="admin-search-input" placeholder="Search by name or email...">
+      </div>
+      <div class="panel">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Joined</th><th></th></tr></thead>
+            <tbody id="custTbody"><tr><td colspan="7" class="text-center" style="padding:30px;"><div class="loader"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="pagination" class="pagination"></div>
+    </div>
+  </div>
+</div>
+
+<div id="custModalOverlay" class="modal-overlay hidden"></div>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/admin/admin-common.js"></script>
+<script>
+let custState = { page: 1, limit: 15, search: '' };
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderAdminShell('customers');
+  setAdminPageTitle('Customers');
+  loadCustomers();
+  document.getElementById('searchInput').addEventListener('input', debounce((e) => {
+    custState.search = e.target.value; custState.page = 1; loadCustomers();
+  }, 400));
+});
+
+async function loadCustomers() {
+  const tbody = document.getElementById('custTbody');
+  tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding:30px;"><div class="loader"></div></td></tr>`;
+  try {
+    const params = new URLSearchParams({ page: custState.page, limit: custState.limit });
+    if (custState.search) params.set('search', custState.search);
+    const res = await api.get(`/users?${params.toString()}`);
+    renderTable(res.data);
+    renderPagination(res.meta);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding:30px; color:var(--color-danger);">${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function renderTable(users) {
+  const tbody = document.getElementById('custTbody');
+  if (users.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding:30px;">No customers found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = users.map((u) => `
+    <tr>
+      <td>${escapeHtml(u.name)}</td>
+      <td class="text-sm">${escapeHtml(u.email)}</td>
+      <td class="text-sm">${escapeHtml(u.phone || '—')}</td>
+      <td><span class="tag" style="background:var(--color-surface-sunken); color:var(--color-ink-soft);">${u.role}</span></td>
+      <td><span class="status-pill status-${u.isBanned ? 'CANCELLED' : 'DELIVERED'}">${u.isBanned ? 'Banned' : 'Active'}</span></td>
+      <td class="text-sm">${formatDate(u.createdAt)}</td>
+      <td>
+        <div class="flex gap-8">
+          <button class="action-icon-btn" data-edit='${JSON.stringify(u).replace(/'/g, "&apos;")}' title="Edit">✏️</button>
+          <button class="action-icon-btn ${u.isBanned ? '' : 'danger'}" data-ban="${u.id}" title="${u.isBanned ? 'Unban' : 'Ban'}">${u.isBanned ? '✅' : '🚫'}</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('[data-edit]').forEach((btn) => btn.addEventListener('click', () => openEditModal(JSON.parse(btn.getAttribute('data-edit')))));
+  tbody.querySelectorAll('[data-ban]').forEach((btn) => btn.addEventListener('click', async () => {
+    if (!confirm('Change ban status for this customer?')) return;
+    try {
+      await api.patch(`/users/${btn.dataset.ban}/ban`);
+      toast('Customer status updated', 'success');
+      loadCustomers();
+    } catch (err) { toast(err.message, 'error'); }
+  }));
+}
+
+function renderPagination(meta) {
+  const el = document.getElementById('pagination');
+  if (meta.totalPages <= 1) { el.innerHTML = ''; return; }
+  let html = `<button ${meta.page === 1 ? 'disabled' : ''} data-p="${meta.page - 1}">‹</button>`;
+  for (let i = 1; i <= meta.totalPages; i++) html += `<button class="${i === meta.page ? 'active' : ''}" data-p="${i}">${i}</button>`;
+  html += `<button ${meta.page === meta.totalPages ? 'disabled' : ''} data-p="${meta.page + 1}">›</button>`;
+  el.innerHTML = html;
+  el.querySelectorAll('button[data-p]').forEach((btn) => btn.addEventListener('click', () => { custState.page = Number(btn.dataset.p); loadCustomers(); }));
+}
+
+function openEditModal(user) {
+  const overlay = document.getElementById('custModalOverlay');
+  overlay.classList.remove('hidden');
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:440px;">
+      <div class="modal-head">
+        <h3 style="margin:0;">Edit customer</h3>
+        <button class="modal-close" id="closeCustModal">✕</button>
+      </div>
+      <div class="field"><label>Name</label><input id="custName" value="${escapeHtml(user.name)}"></div>
+      <div class="field"><label>Phone</label><input id="custPhone" value="${escapeHtml(user.phone || '')}"></div>
+      <div id="custModalError" class="field-error hidden" style="margin-bottom:10px;"></div>
+      <div class="flex gap-12">
+        <button id="saveCustBtn" class="btn btn-primary">Save changes</button>
+        <button id="cancelCustBtn" class="btn btn-ghost">Cancel</button>
+      </div>
+    </div>
+  `;
+  const close = () => overlay.classList.add('hidden');
+  document.getElementById('closeCustModal').addEventListener('click', close);
+  document.getElementById('cancelCustBtn').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  document.getElementById('saveCustBtn').addEventListener('click', async () => {
+    try {
+      await api.patch(`/users/${user.id}`, {
+        name: document.getElementById('custName').value.trim(),
+        phone: document.getElementById('custPhone').value.trim() || undefined,
+      });
+      toast('Customer updated', 'success');
+      close();
+      loadCustomers();
+    } catch (err) {
+      const errEl = document.getElementById('custModalError');
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+    }
+  });
+}
+</script>
+</body>
+</html>

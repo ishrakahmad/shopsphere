@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopSphere — Everyday essentials, thoughtfully curated</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/index.html" class="logo">Shop<span class="dot">•</span>Sphere</a>
+    <nav class="main-nav">
+      <a href="/index.html" class="active">Home</a>
+      <a href="/shop.html">Shop</a>
+      <a href="/shop.html?featured=true">Featured</a>
+      <a href="/shop.html?flashSale=true">Flash Sale</a>
+    </nav>
+    <form id="searchForm" class="header-search">
+      <input id="searchInput" type="text" placeholder="Search products...">
+      <button type="submit" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+    </form>
+    <div class="header-actions">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode"></button>
+      <a href="/wishlist.html" class="icon-btn" aria-label="Wishlist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        <span id="wishlistCount" class="badge-count hidden">0</span>
+      </a>
+      <a href="/cart.html" class="icon-btn" aria-label="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+        <span id="cartCount" class="badge-count hidden">0</span>
+      </a>
+      <div id="userMenuArea" class="flex items-center gap-8"></div>
+      <button id="mobileNavToggle" class="icon-btn mobile-nav-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div id="mobileNavDrawer" class="hidden container" style="padding-bottom:16px; display:flex; flex-direction:column; gap:10px;">
+    <a href="/index.html">Home</a>
+    <a href="/shop.html">Shop</a>
+    <a href="/shop.html?featured=true">Featured</a>
+    <a href="/shop.html?flashSale=true">Flash Sale</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">New season, new staples</span>
+      <h1>Things worth <em>keeping</em>,<br>priced worth <em>talking about</em>.</h1>
+      <p>ShopSphere curates electronics, fashion, home goods and more from vetted sellers — with honest pricing and a price tag that tells the whole story.</p>
+      <div class="hero-cta">
+        <a href="/shop.html" class="btn btn-primary">Start shopping</a>
+        <a href="/shop.html?flashSale=true" class="btn btn-outline">View flash sale</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="num" id="statProducts">—</span><span class="label">Products</span></div>
+        <div class="hero-stat"><span class="num" id="statCategories">—</span><span class="label">Categories</span></div>
+        <div class="hero-stat"><span class="num">4.7</span><span class="label">Avg. rating</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="stamp">UP TO<br>40%<br>OFF</div>
+      <div class="hero-visual-emoji">🛍️</div>
+    </div>
+  </div>
+</section>
+
+<div id="flashBar" class="flash-bar hidden">
+  <div class="container">
+    <span>⚡ <strong>FLASH SALE</strong> — ends in</span>
+    <div class="flash-timer" id="flashTimer">
+      <span id="fH">00</span><span>:</span><span id="fM">00</span><span>:</span><span id="fS">00</span>
+    </div>
+    <a href="/shop.html?flashSale=true" style="color:#fff; text-decoration:underline; font-size:13px;">Shop now →</a>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2>Shop by category</h2>
+      <a href="/shop.html" class="view-all">View all products →</a>
+    </div>
+    <div id="categoryChips" class="chip-row">
+      <div class="skeleton" style="width:100px; height:38px; border-radius:999px;"></div>
+      <div class="skeleton" style="width:120px; height:38px; border-radius:999px;"></div>
+      <div class="skeleton" style="width:90px; height:38px; border-radius:999px;"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-tinted">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Handpicked</span>
+        <h2>Featured products</h2>
+      </div>
+      <a href="/shop.html?featured=true" class="view-all">View all →</a>
+    </div>
+    <div id="featuredGrid" class="product-grid"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Just landed</span>
+        <h2>New arrivals</h2>
+      </div>
+      <a href="/shop.html?newArrival=true" class="view-all">View all →</a>
+    </div>
+    <div id="newArrivalsGrid" class="product-grid"></div>
+  </div>
+</section>
+
+<section class="section section-tinted">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Crowd favorites</span>
+        <h2>Best sellers</h2>
+      </div>
+      <a href="/shop.html?bestSeller=true" class="view-all">View all →</a>
+    </div>
+    <div id="bestSellerGrid" class="product-grid"></div>
+  </div>
+</section>
+
+<section class="section" id="flashSection" style="display:none;">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" style="color:var(--color-accent);">Limited time</span>
+        <h2>Flash sale</h2>
+      </div>
+      <a href="/shop.html?flashSale=true" class="view-all">View all →</a>
+    </div>
+    <div id="flashGrid" class="product-grid"></div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <div class="logo" style="margin-bottom:12px;">Shop<span class="dot">•</span>Sphere</div>
+      <p>A modern marketplace for everyday essentials — curated categories, honest pricing, fast delivery.</p>
+    </div>
+    <div>
+      <h4>Shop</h4>
+      <a href="/shop.html">All Products</a>
+      <a href="/shop.html?newArrival=true">New Arrivals</a>
+      <a href="/shop.html?bestSeller=true">Best Sellers</a>
+      <a href="/shop.html?flashSale=true">Flash Sale</a>
+    </div>
+    <div>
+      <h4>Account</h4>
+      <a href="/account.html">My Account</a>
+      <a href="/orders.html">Order History</a>
+      <a href="/wishlist.html">Wishlist</a>
+      <a href="/cart.html">Cart</a>
+    </div>
+    <div>
+      <h4>Support</h4>
+      <a href="#">Shipping & Returns</a>
+      <a href="#">Contact Us</a>
+      <a href="#">FAQs</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 ShopSphere. All rights reserved.</span>
+    <span>Built with NestJS + PostgreSQL + Prisma</span>
+  </div>
+</footer>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/product-card.js"></script>
+<script src="/assets/js/home.js"></script>
+</body>
+</html>

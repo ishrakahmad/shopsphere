@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Categories — ShopSphere Admin</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <div class="admin-main">
+    <div class="admin-topbar" id="adminTopbar"></div>
+    <div class="admin-content">
+      <div class="admin-toolbar">
+        <span></span>
+        <button id="addCategoryBtn" class="btn btn-primary btn-sm">+ Add category</button>
+      </div>
+      <div class="panel">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th></th><th>Name</th><th>Products</th><th>Status</th><th></th></tr></thead>
+            <tbody id="catTbody"><tr><td colspan="5" class="text-center" style="padding:30px;"><div class="loader"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="catModalOverlay" class="modal-overlay hidden"></div>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/admin/admin-common.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  renderAdminShell('categories');
+  setAdminPageTitle('Categories');
+  loadCategories();
+  document.getElementById('addCategoryBtn').addEventListener('click', () => openCatModal());
+});
+
+function resolveImg(path) {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return API_BASE.replace('/api/v1', '') + path;
+}
+
+async function loadCategories() {
+  const tbody = document.getElementById('catTbody');
+  try {
+    const categories = await api.get('/categories/admin/all');
+    if (categories.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding:30px;">No categories yet.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = categories.map((c) => `
+      <tr>
+        <td><div class="table-thumb">${c.image ? `<img src="${resolveImg(c.image)}">` : '🗂️'}</div></td>
+        <td>${escapeHtml(c.name)}</td>
+        <td>${c._count?.products ?? 0}</td>
+        <td><span class="status-pill status-${c.isActive ? 'DELIVERED' : 'CANCELLED'}">${c.isActive ? 'Active' : 'Hidden'}</span></td>
+        <td>
+          <div class="flex gap-8">
+            <button class="action-icon-btn" data-edit='${JSON.stringify(c).replace(/'/g, "&apos;")}' title="Edit">✏️</button>
+            <button class="action-icon-btn danger" data-delete="${c.id}" title="Delete">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('[data-edit]').forEach((btn) => btn.addEventListener('click', () => openCatModal(JSON.parse(btn.getAttribute('data-edit')))));
+    tbody.querySelectorAll('[data-delete]').forEach((btn) => btn.addEventListener('click', async () => {
+      if (!confirm('Delete this category? Only possible if it has no products.')) return;
+      try {
+        await api.delete(`/categories/${btn.dataset.delete}`);
+        toast('Category deleted', 'success');
+        loadCategories();
+      } catch (err) { toast(err.message, 'error'); }
+    }));
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding:30px; color:var(--color-danger);">${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function openCatModal(cat = null) {
+  const overlay = document.getElementById('catModalOverlay');
+  overlay.classList.remove('hidden');
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:460px;">
+      <div class="modal-head">
+        <h3 style="margin:0;">${cat ? 'Edit category' : 'Add category'}</h3>
+        <button class="modal-close" id="closeCatModal">✕</button>
+      </div>
+      <div class="field"><label>Name</label><input id="catName" value="${escapeHtml(cat?.name || '')}"></div>
+      <div class="field"><label>Description (optional)</label><textarea id="catDesc" rows="3">${escapeHtml(cat?.description || '')}</textarea></div>
+      ${cat ? `<label class="checkbox-row" style="margin-bottom:14px;"><input type="checkbox" id="catActive" ${cat.isActive ? 'checked' : ''}> Active (visible on storefront)</label>` : ''}
+      <div id="catModalError" class="field-error hidden" style="margin-bottom:10px;"></div>
+      <div class="flex gap-12">
+        <button id="saveCatBtn" class="btn btn-primary">${cat ? 'Save changes' : 'Create category'}</button>
+        <button id="cancelCatBtn" class="btn btn-ghost">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('closeCatModal').addEventListener('click', () => overlay.classList.add('hidden'));
+  document.getElementById('cancelCatBtn').addEventListener('click', () => overlay.classList.add('hidden'));
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.add('hidden'); });
+
+  document.getElementById('saveCatBtn').addEventListener('click', async () => {
+    const errEl = document.getElementById('catModalError');
+    errEl.classList.add('hidden');
+    const name = document.getElementById('catName').value.trim();
+    const description = document.getElementById('catDesc').value.trim();
+    if (!name) { errEl.textContent = 'Name is required.'; errEl.classList.remove('hidden'); return; }
+    try {
+      if (cat) {
+        await api.patch(`/categories/${cat.id}`, { name, description, isActive: document.getElementById('catActive').checked });
+      } else {
+        await api.post('/categories', { name, description });
+      }
+      toast('Category saved', 'success');
+      overlay.classList.add('hidden');
+      loadCategories();
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+    }
+  });
+}
+</script>
+</body>
+</html>

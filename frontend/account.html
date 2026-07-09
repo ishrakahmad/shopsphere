@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account — ShopSphere</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  .account-layout { display: grid; grid-template-columns: 220px 1fr; gap: 30px; }
+  .account-nav a { display: block; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 500; color: var(--color-ink-soft); margin-bottom: 4px; }
+  .account-nav a.active, .account-nav a:hover { background: var(--color-surface-sunken); color: var(--color-ink); }
+  .address-manage-card { display: flex; justify-content: space-between; align-items: flex-start; padding: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-md); margin-bottom: 10px; }
+  @media (max-width: 760px) { .account-layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/index.html" class="logo">Shop<span class="dot">•</span>Sphere</a>
+    <nav class="main-nav"><a href="/index.html">Home</a><a href="/shop.html">Shop</a></nav>
+    <div class="header-actions" style="margin-left:auto;">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode"></button>
+      <div id="userMenuArea" class="flex items-center gap-8"></div>
+    </div>
+  </div>
+</header>
+
+<div class="container" style="padding-top:28px; padding-bottom:60px;">
+  <h1 style="font-size:1.8rem;">My Account</h1>
+  <div class="account-layout" style="margin-top:20px;">
+    <nav class="account-nav">
+      <a href="#profile" class="active" data-tab="profile">Profile</a>
+      <a href="#addresses" data-tab="addresses">Address Book</a>
+      <a href="/orders.html">Order History</a>
+      <a href="/wishlist.html">Wishlist</a>
+    </nav>
+
+    <div>
+      <div id="profilePane" class="panel">
+        <div class="panel-title">Profile information</div>
+        <div class="field"><label>Full name</label><input id="pName" placeholder="Your name"></div>
+        <div class="field"><label>Email</label><input id="pEmail" disabled></div>
+        <div class="field"><label>Phone</label><input id="pPhone" placeholder="+880..."></div>
+        <button id="saveProfileBtn" class="btn btn-primary">Save changes</button>
+      </div>
+
+      <div id="addressesPane" class="panel hidden">
+        <div class="panel-title flex justify-between items-center">
+          <span>Address book</span>
+          <button id="addAddrToggle" class="btn btn-outline btn-sm">+ Add address</button>
+        </div>
+        <div id="addAddrFormWrap" class="hidden" style="margin-bottom:18px;"></div>
+        <div id="addressListWrap"><div class="loader"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/account.js"></script>
+</body>
+</html>

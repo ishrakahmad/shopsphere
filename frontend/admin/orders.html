@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Orders — ShopSphere Admin</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <div class="admin-main">
+    <div class="admin-topbar" id="adminTopbar"></div>
+    <div class="admin-content">
+      <div class="admin-toolbar">
+        <div class="chip-row" id="statusFilters">
+          <button class="chip active" data-status="">All</button>
+          <button class="chip" data-status="PENDING">Pending</button>
+          <button class="chip" data-status="PROCESSING">Processing</button>
+          <button class="chip" data-status="SHIPPED">Shipped</button>
+          <button class="chip" data-status="DELIVERED">Delivered</button>
+          <button class="chip" data-status="CANCELLED">Cancelled</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Order #</th><th>Customer</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th></th></tr></thead>
+            <tbody id="ordersTbody"><tr><td colspan="7" class="text-center" style="padding:30px;"><div class="loader"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="pagination" class="pagination"></div>
+    </div>
+  </div>
+</div>
+
+<div id="orderModalOverlay" class="modal-overlay hidden"></div>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/admin/admin-common.js"></script>
+<script src="/assets/js/admin/orders.js"></script>
+</body>
+</html>

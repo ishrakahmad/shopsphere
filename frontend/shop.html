@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop — ShopSphere</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  .shop-layout { display: grid; grid-template-columns: 240px 1fr; gap: 30px; align-items: start; }
+  .filter-group { margin-bottom: 26px; }
+  .filter-group h4 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--color-ink-faint); margin-bottom: 12px; }
+  .filter-option { display: flex; align-items: center; gap: 9px; padding: 6px 0; font-size: 13.5px; cursor: pointer; }
+  .filter-option input { width: auto; }
+  .price-inputs { display: flex; gap: 8px; align-items: center; }
+  .price-inputs input { width: 100%; padding: 8px 10px; font-size: 13px; }
+  .shop-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 12px; flex-wrap: wrap; }
+  @media (max-width: 860px) { .shop-layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/index.html" class="logo">Shop<span class="dot">•</span>Sphere</a>
+    <nav class="main-nav">
+      <a href="/index.html">Home</a>
+      <a href="/shop.html" class="active">Shop</a>
+      <a href="/shop.html?featured=true">Featured</a>
+      <a href="/shop.html?flashSale=true">Flash Sale</a>
+    </nav>
+    <form id="searchForm" class="header-search">
+      <input id="searchInput" type="text" placeholder="Search products...">
+      <button type="submit" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+    </form>
+    <div class="header-actions">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode"></button>
+      <a href="/wishlist.html" class="icon-btn" aria-label="Wishlist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        <span id="wishlistCount" class="badge-count hidden">0</span>
+      </a>
+      <a href="/cart.html" class="icon-btn" aria-label="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+        <span id="cartCount" class="badge-count hidden">0</span>
+      </a>
+      <div id="userMenuArea" class="flex items-center gap-8"></div>
+      <button id="mobileNavToggle" class="icon-btn mobile-nav-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div id="mobileNavDrawer" class="hidden container" style="padding-bottom:16px; display:flex; flex-direction:column; gap:10px;">
+    <a href="/index.html">Home</a>
+    <a href="/shop.html">Shop</a>
+  </div>
+</header>
+
+<div class="container" style="padding-top:24px;">
+  <div class="breadcrumb"><a href="/index.html">Home</a> / <span id="breadcrumbLabel">Shop</span></div>
+  <h1 style="font-size:1.8rem; margin-bottom:20px;">All products</h1>
+
+  <div class="shop-layout">
+    <aside>
+      <div class="filter-group">
+        <h4>Category</h4>
+        <div id="categoryFilters"><div class="skeleton" style="height:16px; width:80%; margin-bottom:8px;"></div></div>
+      </div>
+      <div class="filter-group">
+        <h4>Price range</h4>
+        <div class="price-inputs">
+          <input type="number" id="minPrice" placeholder="Min">
+          <span>–</span>
+          <input type="number" id="maxPrice" placeholder="Max">
+        </div>
+        <button id="applyPriceBtn" class="btn btn-outline btn-sm w-full" style="margin-top:10px;">Apply</button>
+      </div>
+      <div class="filter-group">
+        <h4>Rating</h4>
+        <label class="filter-option"><input type="radio" name="minRating" value=""> Any rating</label>
+        <label class="filter-option"><input type="radio" name="minRating" value="4"> ★★★★ & up</label>
+        <label class="filter-option"><input type="radio" name="minRating" value="3"> ★★★ & up</label>
+      </div>
+      <div class="filter-group">
+        <h4>Show only</h4>
+        <label class="filter-option"><input type="checkbox" id="fFeatured"> Featured</label>
+        <label class="filter-option"><input type="checkbox" id="fNew"> New arrivals</label>
+        <label class="filter-option"><input type="checkbox" id="fBest"> Best sellers</label>
+        <label class="filter-option"><input type="checkbox" id="fFlash"> Flash sale</label>
+      </div>
+      <button id="clearFiltersBtn" class="btn btn-ghost btn-sm w-full">Clear all filters</button>
+    </aside>
+
+    <main>
+      <div class="shop-toolbar">
+        <span id="resultCount" class="text-sm text-soft">Loading...</span>
+        <select id="sortSelect" style="padding:9px 14px; border-radius:999px; border:1px solid var(--color-border-strong); font-size:13px; background:var(--color-surface);">
+          <option value="newest">Newest</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+          <option value="rating">Top Rated</option>
+          <option value="popular">Most Popular</option>
+        </select>
+      </div>
+      <div id="productGrid" class="product-grid"></div>
+      <div id="pagination" class="pagination"></div>
+    </main>
+  </div>
+</div>
+
+<footer class="site-footer" style="margin-top:60px;">
+  <div class="container footer-bottom">
+    <span>© 2026 ShopSphere. All rights reserved.</span>
+  </div>
+</footer>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/product-card.js"></script>
+<script src="/assets/js/shop.js"></script>
+</body>
+</html>

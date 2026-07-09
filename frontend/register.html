@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign up — ShopSphere</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/index.html" class="logo">Shop<span class="dot">•</span>Sphere</a>
+    <div class="header-actions" style="margin-left:auto;">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode"></button>
+    </div>
+  </div>
+</header>
+
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1>Create your account</h1>
+    <p class="sub">Join ShopSphere to track orders, save favorites, and check out faster.</p>
+
+    <div id="formError" class="field-error hidden" style="margin-bottom:14px;"></div>
+
+    <form id="registerForm">
+      <div class="field">
+        <label>Full name</label>
+        <input type="text" id="name" required placeholder="Jane Doe">
+      </div>
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="email" required placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Phone (optional)</label>
+        <input type="tel" id="phone" placeholder="+880 1XXXXXXXXX">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" required placeholder="At least 6 characters">
+        <div class="field-hint">Must include an uppercase letter, a lowercase letter, and a number or symbol.</div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="registerBtn">Create account</button>
+    </form>
+
+    <div class="auth-switch">Already have an account? <a href="/login.html">Log in</a></div>
+  </div>
+</div>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById('formError');
+  errEl.classList.add('hidden');
+  const btn = document.getElementById('registerBtn');
+  btn.disabled = true; btn.textContent = 'Creating account...';
+
+  try {
+    const res = await api.post('/auth/register', {
+      name: document.getElementById('name').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      phone: document.getElementById('phone').value.trim() || undefined,
+      password: document.getElementById('password').value,
+    }, { auth: false });
+    localStorage.setItem('ss_token', res.accessToken);
+    localStorage.setItem('ss_user', JSON.stringify(res.user));
+    window.location.href = '/index.html';
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+    btn.disabled = false; btn.textContent = 'Create account';
+  }
+});
+</script>
+</body>
+</html>

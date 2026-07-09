@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — ShopSphere</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  .chart-bars { display: flex; align-items: flex-end; gap: 14px; height: 200px; padding-top: 10px; }
+  .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 8px; }
+  .chart-bar { width: 100%; max-width: 42px; background: var(--color-primary); border-radius: 6px 6px 0 0; transition: height .4s ease; min-height: 3px; }
+  .chart-label { font-size: 11px; color: var(--color-ink-faint); font-family: var(--font-mono); }
+  .two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <div class="admin-main">
+    <div class="admin-topbar" id="adminTopbar"></div>
+    <div class="admin-content">
+      <div id="dashRoot"><div class="loader"></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/admin/admin-common.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  renderAdminShell('dashboard');
+  setAdminPageTitle('Dashboard');
+  await loadDashboard();
+});
+
+async function loadDashboard() {
+  const root = document.getElementById('dashRoot');
+  try {
+    const [kpis, monthly, topProducts, lowStock] = await Promise.all([
+      api.get('/admin/dashboard'),
+      api.get('/admin/analytics/monthly-sales?months=6'),
+      api.get('/admin/analytics/top-products?limit=5'),
+      api.get('/admin/analytics/low-stock?threshold=15'),
+    ]);
+    render(kpis, monthly, topProducts, lowStock);
+  } catch (err) {
+    root.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Could not load dashboard</h3><p>${escapeHtml(err.message)}</p></div>`;
+  }
+}
+
+function render(kpis, monthly, topProducts, lowStock) {
+  const maxRevenue = Math.max(...monthly.map((m) => m.revenue), 1);
+
+  document.getElementById('dashRoot').innerHTML = `
+    <div class="kpi-grid">
+      ${kpiCard('Total Revenue', formatMoney(kpis.totalRevenue), '💰')}
+      ${kpiCard('Total Orders', kpis.totalOrders, '📦')}
+      ${kpiCard('Customers', kpis.totalCustomers, '👥')}
+      ${kpiCard('Active Products', kpis.totalProducts, '🛍️')}
+    </div>
+
+    <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+      ${kpiCard('Pending Orders', kpis.pendingOrders, '⏳', 'warn')}
+      ${kpiCard('Delivered Orders', kpis.deliveredOrders, '✅', 'success')}
+      ${kpiCard('Cancelled Orders', kpis.cancelledOrders, '❌', 'danger')}
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Monthly revenue (last 6 months)</div>
+        <div class="chart-bars">
+          ${monthly.map((m) => `
+            <div class="chart-col">
+              <span class="text-sm price" style="font-size:11px;">${formatMoney(m.revenue)}</span>
+              <div class="chart-bar" style="height:${Math.max((m.revenue / maxRevenue) * 100, 2)}%;"></div>
+              <span class="chart-label">${monthLabel(m.month)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Low stock alerts</div>
+        ${lowStock.length === 0 ? '<p class="text-sm text-soft">All products are well stocked. 🎉</p>' : lowStock.map((p) => `
+          <div class="flex justify-between items-center" style="padding:9px 0; border-bottom:1px solid var(--color-border);">
+            <span class="text-sm">${escapeHtml(p.name)}</span>
+            <span class="status-pill status-CANCELLED">${p.stock} left</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:20px;">
+      <div class="panel-title">Top selling products</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Product</th><th>Price</th><th>Sold</th><th>Rating</th><th>Stock</th></tr></thead>
+          <tbody>
+            ${topProducts.map((p) => `
+              <tr>
+                <td><div class="table-thumb">${p.images[0] ? `<img src="${resolveImg(p.images[0])}">` : '📦'}</div></td>
+                <td>${escapeHtml(p.name)}</td>
+                <td class="price">${formatMoney(p.price)}</td>
+                <td>${p.totalSold}</td>
+                <td>${Number(p.avgRating).toFixed(1)} ★</td>
+                <td>${p.stock}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function kpiCard(label, value, icon, tone) {
+  const color = tone === 'warn' ? 'var(--color-warn)' : tone === 'success' ? 'var(--color-success)' : tone === 'danger' ? 'var(--color-danger)' : 'var(--color-ink)';
+  return `
+    <div class="kpi-card">
+      <div class="kpi-label">${icon} ${label}</div>
+      <div class="kpi-value" style="color:${color};">${value}</div>
+    </div>
+  `;
+}
+
+function monthLabel(ym) {
+  const [y, m] = ym.split('-');
+  return new Date(Number(y), Number(m) - 1).toLocaleDateString(undefined, { month: 'short' });
+}
+
+function resolveImg(path) {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return API_BASE.replace('/api/v1', '') + path;
+}
+</script>
+</body>
+</html>

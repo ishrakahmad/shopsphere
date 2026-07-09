@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Products — ShopSphere Admin</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <div class="admin-main">
+    <div class="admin-topbar" id="adminTopbar"></div>
+    <div class="admin-content">
+      <div class="admin-toolbar">
+        <input type="text" id="searchInput" class="admin-search-input" placeholder="Search products...">
+        <button id="addProductBtn" class="btn btn-primary btn-sm">+ Add product</button>
+      </div>
+      <div class="panel">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Flags</th><th>Status</th><th></th></tr></thead>
+            <tbody id="productsTbody"><tr><td colspan="8" class="text-center" style="padding:30px;"><div class="loader"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="pagination" class="pagination"></div>
+    </div>
+  </div>
+</div>
+
+<div id="productModalOverlay" class="modal-overlay hidden"></div>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/admin/admin-common.js"></script>
+<script src="/assets/js/admin/products.js"></script>
+</body>
+</html>

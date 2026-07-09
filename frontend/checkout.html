@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — ShopSphere</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  .checkout-layout { display: grid; grid-template-columns: 1fr 380px; gap: 30px; align-items: start; }
+  .address-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .step-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; margin-bottom: 16px; }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--color-ink); color: var(--color-bg); display: flex; align-items: center; justify-content: center; font-size: 12px; font-family: var(--font-mono); }
+  @media (max-width: 860px) { .checkout-layout { grid-template-columns: 1fr; } .address-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/index.html" class="logo">Shop<span class="dot">•</span>Sphere</a>
+    <div class="header-actions" style="margin-left:auto;">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode"></button>
+      <div id="userMenuArea" class="flex items-center gap-8"></div>
+    </div>
+  </div>
+</header>
+
+<div class="container" style="padding-top:28px; padding-bottom:70px;">
+  <h1 style="font-size:1.8rem;">Checkout</h1>
+  <div id="checkoutRoot" style="margin-top:20px;"><div class="loader"></div></div>
+</div>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/checkout.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — ShopSphere</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/index.html" class="logo">Shop<span class="dot">•</span>Sphere</a>
+    <div class="header-actions" style="margin-left:auto;">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode"></button>
+    </div>
+  </div>
+</header>
+
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1>Welcome back</h1>
+    <p class="sub">Log in to continue to your ShopSphere account.</p>
+
+    <div id="formError" class="field-error hidden" style="margin-bottom:14px;"></div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="email" required placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" required placeholder="••••••••">
+      </div>
+      <div class="flex justify-between items-center" style="margin-bottom:20px;">
+        <label class="checkbox-row"><input type="checkbox" id="remember" checked> Remember me</label>
+        <a href="/forgot-password.html" class="text-sm" style="color:var(--color-primary); font-weight:600;">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Log in</button>
+    </form>
+
+    <p class="text-sm text-faint" style="margin-top:18px; text-align:center;">
+      Demo admin: admin@shopsphere.com / Admin@123
+    </p>
+
+    <div class="auth-switch">Don't have an account? <a href="/register.html">Sign up</a></div>
+  </div>
+</div>
+
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/utils.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById('formError');
+  errEl.classList.add('hidden');
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Logging in...';
+
+  try {
+    const res = await api.post('/auth/login', {
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value,
+    }, { auth: false });
+    localStorage.setItem('ss_token', res.accessToken);
+    localStorage.setItem('ss_user', JSON.stringify(res.user));
+    const next = qs('next');
+    window.location.href = next || (res.user.role === 'ADMIN' ? '/admin/index.html' : '/index.html');
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+    btn.disabled = false; btn.textContent = 'Log in';
+  }
+});
+</script>
+</body>
+</html>
