@@ -2,7 +2,7 @@
 
 function formatMoney(amount) {
   const n = Number(amount || 0);
-  return `৳${n.toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `$${n.toFixed(2)}`;
 }
 
 function escapeHtml(str) {

@@ -1,6 +1,15 @@
 import { IsString, IsOptional, IsNumber, IsInt, IsBoolean, Min, MinLength, IsDateString, IsArray } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+
+// Multipart/form-data always sends booleans as the strings "true"/"false".
+// class-transformer's @Type(() => Boolean) calls Boolean(value), which treats
+// ANY non-empty string (including "false") as true. This transformer fixes that.
+const toBoolean = ({ value }: { value: unknown }) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.toLowerCase() === 'true';
+  return Boolean(value);
+};
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Wireless Headphones' })
@@ -42,19 +51,25 @@ export class CreateProductDto {
 
   @ApiProperty({ required: false, default: false })
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isFeatured?: boolean;
 
   @ApiProperty({ required: false, default: false })
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
   @IsBoolean()
   isNewArrival?: boolean;
 
   @ApiProperty({ required: false, default: false })
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(toBoolean)
+  @IsBoolean()
+  isBestSeller?: boolean;
+
+  @ApiProperty({ required: false, default: false })
+  @IsOptional()
+  @Transform(toBoolean)
   @IsBoolean()
   isFlashSale?: boolean;
 
