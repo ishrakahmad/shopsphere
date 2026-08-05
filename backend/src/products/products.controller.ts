@@ -69,7 +69,7 @@ export class ProductsController {
     @CurrentUser() user: any,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    const imageUrls = (files || []).map((f) => `/uploads/products/${f.filename}`);
+    const imageUrls = (files || []).map((f) => f.path);
     return this.productsService.create(dto, user.id, imageUrls);
   }
 
@@ -90,7 +90,7 @@ export class ProductsController {
   @UseInterceptors(FilesInterceptor('images', 6, multerProductImageOptions))
   @ApiOperation({ summary: '[Admin] Upload additional images to a product' })
   addImages(@Param('id') id: string, @UploadedFiles() files: Express.Multer.File[]) {
-    const imageUrls = (files || []).map((f) => `/uploads/products/${f.filename}`);
+    const imageUrls = (files || []).map((f) => f.path);
     return this.productsService.addImages(id, imageUrls);
   }
 
