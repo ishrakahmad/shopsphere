@@ -1,6 +1,3 @@
-// ShopSphere Database Schema
-// PostgreSQL + Prisma ORM
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,7 +7,209 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==================== ENUMS ====================
+model User {
+  id               String     @id @default(uuid())
+  name             String
+  email            String     @unique
+  password         String
+  phone            String?
+  role             Role       @default(CUSTOMER)
+  isBanned         Boolean    @default(false)
+  avatar           String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  addresses        Address[]
+  cart             Cart?
+  orders           Order[]
+  products         Product[]  @relation("ProductCreatedBy")
+  reviews          Review[]
+  wishlist         Wishlist[]
+
+  @@map("users")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  image       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            String      @id @default(uuid())
+  name          String
+  slug          String      @unique
+  description   String
+  price         Decimal     @db.Decimal(10, 2)
+  discountPrice Decimal?    @db.Decimal(10, 2)
+  stock         Int         @default(0)
+  sku           String      @unique
+  images        String[]
+  isFeatured    Boolean     @default(false)
+  isNewArrival  Boolean     @default(false)
+  isBestSeller  Boolean     @default(false)
+  isFlashSale   Boolean     @default(false)
+  flashSaleEnd  DateTime?
+  avgRating     Float       @default(0)
+  totalReviews  Int         @default(0)
+  totalSold     Int         @default(0)
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  categoryId    String
+  createdById   String?
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  category      Category    @relation(fields: [categoryId], references: [id])
+  createdBy     User?       @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  reviews       Review[]
+  wishlistItems Wishlist[]
+
+  @@index([categoryId])
+  @@index([isFeatured])
+  @@index([isNewArrival])
+  @@index([isBestSeller])
+  @@index([isFlashSale])
+  @@map("products")
+}
+
+model Cart {
+  id         String     @id @default(uuid())
+  userId     String     @unique
+  couponCode String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items      CartItem[]
+
+  @@map("cart")
+}
+
+model CartItem {
+  id            String   @id @default(uuid())
+  cartId        String
+  productId     String
+  quantity      Int      @default(1)
+  savedForLater Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  cart          Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlist")
+}
+
+model Address {
+  id             String      @id @default(uuid())
+  userId         String
+  type           AddressType @default(SHIPPING)
+  fullName       String
+  phone          String
+  addressLine    String
+  city           String
+  state          String?
+  postalCode     String
+  country        String
+  isDefault      Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billingOrders  Order[]     @relation("BillingAddress")
+  shippingOrders Order[]     @relation("ShippingAddress")
+
+  @@map("addresses")
+}
+
+model Order {
+  id                String        @id @default(uuid())
+  orderNumber       String        @unique
+  userId            String
+  billingAddressId  String
+  shippingAddressId String
+  subtotal          Decimal       @db.Decimal(10, 2)
+  discount          Decimal       @default(0) @db.Decimal(10, 2)
+  shippingFee       Decimal       @default(0) @db.Decimal(10, 2)
+  total             Decimal       @db.Decimal(10, 2)
+  couponCode        String?
+  status            OrderStatus   @default(PENDING)
+  paymentMethod     PaymentMethod @default(COD)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  items             OrderItem[]
+  billingAddress    Address       @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  shippingAddress   Address       @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  user              User          @relation(fields: [userId], references: [id])
+  payment           Payment?
+
+  @@index([userId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  productId String
+  name      String
+  price     Decimal @db.Decimal(10, 2)
+  quantity  Int
+  image     String?
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  orderId       String        @unique
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  amount        Decimal       @db.Decimal(10, 2)
+  transactionId String?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("reviews")
+}
 
 enum Role {
   ADMIN
@@ -41,224 +240,4 @@ enum PaymentStatus {
 enum AddressType {
   BILLING
   SHIPPING
-}
-
-// ==================== MODELS ====================
-
-model User {
-  id                String   @id @default(uuid())
-  name              String
-  email             String   @unique
-  password          String
-  phone             String?
-  role              Role     @default(CUSTOMER)
-  isBanned          Boolean  @default(false)
-  avatar            String?
-  resetToken        String?
-  resetTokenExpiry  DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  addresses  Address[]
-  cart       Cart?
-  wishlist   Wishlist[]
-  orders     Order[]
-  reviews    Review[]
-  products   Product[] @relation("ProductCreatedBy")
-
-  @@map("users")
-}
-
-model Category {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  slug        String   @unique
-  description String?
-  image       String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  products Product[]
-
-  @@map("categories")
-}
-
-model Product {
-  id            String   @id @default(uuid())
-  name          String
-  slug          String   @unique
-  description   String
-  price         Decimal  @db.Decimal(10, 2)
-  discountPrice Decimal? @db.Decimal(10, 2)
-  stock         Int      @default(0)
-  sku           String   @unique
-  images        String[] // multiple image URLs
-  isFeatured    Boolean  @default(false)
-  isNewArrival  Boolean  @default(false)
-  isBestSeller  Boolean  @default(false)
-  isFlashSale   Boolean  @default(false)
-  flashSaleEnd  DateTime?
-  avgRating     Float    @default(0)
-  totalReviews  Int      @default(0)
-  totalSold     Int      @default(0)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-
-  createdById String?
-  createdBy   User?   @relation("ProductCreatedBy", fields: [createdById], references: [id])
-
-  cartItems     CartItem[]
-  wishlistItems Wishlist[]
-  orderItems    OrderItem[]
-  reviews       Review[]
-
-  @@index([categoryId])
-  @@index([isFeatured])
-  @@index([isNewArrival])
-  @@index([isBestSeller])
-  @@index([isFlashSale])
-  @@map("products")
-}
-
-model Cart {
-  id     String @id @default(uuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  items      CartItem[]
-  couponCode String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("cart")
-}
-
-model CartItem {
-  id       String @id @default(uuid())
-  cartId   String
-  cart     Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  productId String
-  product  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  quantity Int    @default(1)
-  savedForLater Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([cartId, productId])
-  @@map("cart_items")
-}
-
-model Wishlist {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@unique([userId, productId])
-  @@map("wishlist")
-}
-
-model Address {
-  id          String      @id @default(uuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        AddressType @default(SHIPPING)
-  fullName    String
-  phone       String
-  addressLine String
-  city        String
-  state       String?
-  postalCode  String
-  country     String
-  isDefault   Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  billingOrders  Order[] @relation("BillingAddress")
-  shippingOrders Order[] @relation("ShippingAddress")
-
-  @@map("addresses")
-}
-
-model Order {
-  id            String        @id @default(uuid())
-  orderNumber   String        @unique
-  userId        String
-  user          User          @relation(fields: [userId], references: [id])
-
-  billingAddressId  String
-  billingAddress    Address @relation("BillingAddress", fields: [billingAddressId], references: [id])
-  shippingAddressId String
-  shippingAddress   Address @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
-
-  subtotal      Decimal     @db.Decimal(10, 2)
-  discount      Decimal     @default(0) @db.Decimal(10, 2)
-  shippingFee   Decimal     @default(0) @db.Decimal(10, 2)
-  total         Decimal     @db.Decimal(10, 2)
-  couponCode    String?
-
-  status        OrderStatus @default(PENDING)
-  paymentMethod PaymentMethod @default(COD)
-
-  items    OrderItem[]
-  payment  Payment?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@index([status])
-  @@map("orders")
-}
-
-model OrderItem {
-  id        String  @id @default(uuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  name      String  // snapshot at time of order
-  price     Decimal @db.Decimal(10, 2) // snapshot price
-  quantity  Int
-  image     String?
-
-  @@map("order_items")
-}
-
-model Payment {
-  id            String        @id @default(uuid())
-  orderId       String        @unique
-  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  method        PaymentMethod
-  status        PaymentStatus @default(PENDING)
-  amount        Decimal       @db.Decimal(10, 2)
-  transactionId String?
-  paidAt        DateTime?
-  createdAt     DateTime      @default(now())
-
-  @@map("payments")
-}
-
-model Review {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  rating    Int      // 1-5
-  comment   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, productId])
-  @@map("reviews")
 }
