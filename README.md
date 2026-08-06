@@ -21,6 +21,9 @@ lightweight vanilla **HTML/CSS/JavaScript** storefront + admin panel.
     <img src="https://img.shields.io/badge/📚_API_DOCS-D6402C?style=for-the-badge&logoColor=white" alt="API Docs" height="45"/>
   </a>
 </p> 
+## 🔗 Live Demo
+
+https://shopsphere.ishrakahmad.me/
 
 
 ## 📖 Overview
