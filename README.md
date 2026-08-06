@@ -12,7 +12,7 @@ lightweight vanilla **HTML/CSS/JavaScript** storefront + admin panel.
   <img src="https://img.shields.io/badge/Cloudinary-3448C5?style=flat&logo=cloudinary&logoColor=white" />
 </p>
 
-**[🔗 https://shopsphere.ishrakahmad.me/](#)** &nbsp;·&nbsp; **
+**[🔗 Live Demo](https://shopsphere.ishrakahmad.me/)** &nbsp;·&nbsp; 
 
 
 ## 📖 Overview
